@@ -12,7 +12,7 @@ const auth = async (req, res,next) => {
     const decode=jwt.verify(token, process.env.SECRET)
     const admin= await Admin.findOne({_id:decode.id})
     if (!admin || !admin.role) {
-        throw new Error()
+        throw new Error('You are not authorized to perform this action')
     }
         req.role = decode.role
         req.id = decode.id

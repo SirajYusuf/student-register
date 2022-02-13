@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const Student = require('../models/studentModel')
+const {emptyS3Directory, emptyDirectory} = require('../utils/multer')
 
 const register = async(req,res)=>{
     try{
@@ -29,6 +30,12 @@ const register = async(req,res)=>{
 const uploadPic = async(req,res)=>{
 try{
     const files = req.files
+    const pics = files.map(item => {
+        const container = {};
+        container.key= item.key;
+        container.location= item.location;
+        return container;
+    })
     await Student.findOneAndUpdate({_id:req.params.id},{$push:{picNames:files}}).then(()=>{
         res.status(200).send({
             status:200,
@@ -123,15 +130,10 @@ const updateStudent = async(req,res)=>{
 }
 
 const deleteStudent = async(req,res)=>{
-try{
-        await Student.findByIdAndDelete({_id:req.params.id}).then((data)=>{
-            fs.rmSync(`./uploads/${req.params.id}`, { recursive: true, force: true },function(err, data){
-                if(err){
-                    throw new Error('somthing went wrong!')
-                }else{
-                    res.send(data)  
-                }
-            })
+try{    
+        await Student.findByIdAndDelete({_id:req.params.id}).then(async(data)=>{
+           await emptyDirectory('studentregister',`${req.params.id}`)
+           res.send(data)
          })
 }catch(err){
         console.log(err)
@@ -143,11 +145,39 @@ try{
 }
 }
 
+const updatePic = async(req,res)=>{
+    try{
+        const files = req.files
+        const pics = files.map(item => {
+            const container = {};
+            container.key= item.key;
+            container.location= item.location;
+            return container;
+        })
+        const _id =  req.params.id
+        const pull = await Student.findByIdAndUpdate(_id,{$pull:{'picNames':{_id:req.params.id2}}})
+        const push = await Student.findByIdAndUpdate(_id,{$push:{picNames:files}})
+        console.log(pull,push)
+        if(!pull || !push) throw new Error('somthing went wrong')
+        res.status(200).send({
+            status:200,
+            message:'Image successfully updated'
+        })
+    }catch(err){
+        console.log(err)
+        res.status(500).send({
+            status:500,
+            message:'something went wrong please try agian'
+        })
+    }
+}
+
 module.exports = {
     register,
     uploadPic,
     viewPic,
     getStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updatePic
 }

@@ -35,7 +35,10 @@ const schema = new mongoose.Schema({
         }
     },
     picNames: [{
-        filename:{
+        key:{
+            type:String
+        },
+        location:{
             type:String
         }
     }]
