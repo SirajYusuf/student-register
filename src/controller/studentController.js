@@ -29,6 +29,8 @@ const register = async(req,res)=>{
 
 const uploadPic = async(req,res)=>{
 try{
+    const studentExists = await Student.findById({_id:req.params.id})
+    if(!studentExists) throw new Error('student doesnt exist')
     const files = req.files
     const pics = files.map(item => {
         const container = {};
@@ -155,10 +157,10 @@ const updatePic = async(req,res)=>{
             return container;
         })
         const _id =  req.params.id
+        const array = await Student.find({"picNames._id":req.params.id2})
+        if(array.length == 0) throw new Error('You have already updated this pic')
         const pull = await Student.findByIdAndUpdate(_id,{$pull:{'picNames':{_id:req.params.id2}}})
         const push = await Student.findByIdAndUpdate(_id,{$push:{picNames:files}})
-        console.log(pull,push)
-        if(!pull || !push) throw new Error('somthing went wrong')
         res.status(200).send({
             status:200,
             message:'Image successfully updated'
