@@ -32,12 +32,7 @@ try{
     const studentExists = await Student.findById({_id:req.params.id})
     if(!studentExists) throw new Error('student doesnt exist')
     const files = req.files
-    const pics = files.map(item => {
-        const container = {};
-        container.key= item.key;
-        container.location= item.location;
-        return container;
-    })
+    console.log(files)
     await Student.findOneAndUpdate({_id:req.params.id},{$push:{picNames:files}}).then(()=>{
         res.status(200).send({
             status:200,
